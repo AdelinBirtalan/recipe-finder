@@ -42,7 +42,7 @@ A sleek, responsive web application that helps you discover delicious recipes us
 
 ## Live Demo
 
-[Insert link to your deployed app here]
+[https://reciperser.netlify.app/]
 
 ## Installation
 
