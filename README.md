@@ -55,6 +55,6 @@ A sleek, responsive web application that helps you discover delicious recipes us
 - Recipe data provided by [Edamam API](https://developer.edamam.com/)
 - Icons from [Font Awesome](https://fontawesome.com/)
 
-## License
 
-MIT License - feel free to use and modify as you wish!
+
+
