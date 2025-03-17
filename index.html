@@ -16,12 +16,12 @@
   <body>
     <div class="container">
       <div class="theme-switch-wrapper">
-        <span>Orange</span>
+        <span>Light</span>
         <label class="theme-switch">
           <input type="checkbox" id="darkModeToggle" />
           <div class="slider round"></div>
         </label>
-        <span>Green</span>
+        <span>Dark</span>
       </div>
       <h1>Recipe Finder</h1>
       <div class="inputGroup">
@@ -32,6 +32,10 @@
         />
         <button id="myBtn" style="border-right: solid black 1px">Search</button>
         <button id="resBtn">Reset</button>
+      </div>
+      <div id="loader" class="loader hidden">
+        <div class="spinner"></div>
+        <p>Loading recipes...</p>
       </div>
       <div id="results"></div>
     </div>
