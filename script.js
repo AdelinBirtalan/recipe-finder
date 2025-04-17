@@ -4,8 +4,6 @@ const resultsDiv = document.getElementById("results");
 const input = document.getElementById("myInput");
 const darkModeToggle = document.getElementById("darkModeToggle");
 const body = document.body;
-const appId = "f14c4d41";
-const appKey = "87e7dff1da8d99744844e892d58f5709";
 const prefersDark =
   window.matchMedia &&
   window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -23,22 +21,32 @@ myBtn.addEventListener("click", () => {
   loader.classList.remove("hidden");
   resultsDiv.innerHTML = "";
 
-  const url = `https://api.edamam.com/search?q=${query}&app_id=${appId}&app_key=${appKey}&to=8`;
+  const url = `https://www.themealdb.com/api/json/v1/1/filter.php?i=${query}`;
+
   fetch(url)
-    .then((response) => response.json())
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      return response.json();
+    })
     .then((data) => {
+      console.log("API Response:", data);
       loader.classList.add("hidden");
-      if (data.hits.length === 0) {
+
+      if (!data.meals || data.meals.length === 0) {
         resultsDiv.innerHTML =
           "<p>No recipes found. Try different ingredients!</p>";
         return;
       }
-      displayRecipes(data.hits);
+
+      const recipesToShow = data.meals.slice(0, 8);
+      displayRecipes(recipesToShow);
     })
     .catch((error) => {
       loader.classList.add("hidden");
       console.error("Error fetching data:", error);
-      resultsDiv.innerHTML = "<p>Something went wrong. Please try again!</p>";
+      resultsDiv.innerHTML = `<p>Something went wrong: ${error.message}. Please try again!</p>`;
     });
 });
 
@@ -49,16 +57,50 @@ resetBtn.addEventListener("click", () => {
 
 function displayRecipes(recipes) {
   resultsDiv.innerHTML = "";
+
   recipes.forEach((recipe) => {
-    const recipeCard = document.createElement("div");
-    recipeCard.classList.add("recipe-card");
-    recipeCard.innerHTML = `
-    <img src="${recipe.recipe.image}" alt="${recipe.recipe.label}">
-    <h3>${recipe.recipe.label}</h3>
-    <a href="${recipe.recipe.url}" target="_blank">View Recipe </a>
-    `;
-    resultsDiv.appendChild(recipeCard);
+    getRecipeDetails(recipe.idMeal)
+      .then((detailedRecipe) => {
+        const recipeCard = document.createElement("div");
+        recipeCard.classList.add("recipe-card");
+
+        recipeCard.innerHTML = `
+          <img src="${detailedRecipe.strMealThumb}" alt="${detailedRecipe.strMeal}">
+          <h3>${detailedRecipe.strMeal}</h3>
+          <a href="#" class="view-recipe" data-id="${detailedRecipe.idMeal}">View Recipe</a>
+        `;
+
+        const viewButton = recipeCard.querySelector(".view-recipe");
+        viewButton.addEventListener("click", (e) => {
+          e.preventDefault();
+          window.open(
+            `https://www.themealdb.com/meal/${detailedRecipe.idMeal}`,
+            "_blank"
+          );
+        });
+
+        resultsDiv.appendChild(recipeCard);
+      })
+      .catch((error) => {
+        console.error("Error fetching recipe details:", error);
+      });
   });
+}
+
+function getRecipeDetails(mealId) {
+  return fetch(`https://www.themealdb.com/api/json/v1/1/lookup.php?i=${mealId}`)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Failed to fetch recipe details");
+      }
+      return response.json();
+    })
+    .then((data) => {
+      if (!data.meals || !data.meals[0]) {
+        throw new Error("No recipe details found");
+      }
+      return data.meals[0];
+    });
 }
 
 if (savedTheme === "true" || (savedTheme === null && prefersDark)) {
@@ -75,37 +117,3 @@ darkModeToggle.addEventListener("change", function () {
     localStorage.setItem("darkMode", "false");
   }
 });
-
-(function () {
-  function c() {
-    var b = a.contentDocument || a.contentWindow.document;
-    if (b) {
-      var d = b.createElement("script");
-      d.innerHTML =
-        "window.__CF$cv$params={r:'921c3966ce7eb066',t:'MTc0MjIxMTcxOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";
-      b.getElementsByTagName("head")[0].appendChild(d);
-    }
-  }
-  if (document.body) {
-    var a = document.createElement("iframe");
-    a.height = 1;
-    a.width = 1;
-    a.style.position = "absolute";
-    a.style.top = 0;
-    a.style.left = 0;
-    a.style.border = "none";
-    a.style.visibility = "hidden";
-    document.body.appendChild(a);
-    if ("loading" !== document.readyState) c();
-    else if (window.addEventListener)
-      document.addEventListener("DOMContentLoaded", c);
-    else {
-      var e = document.onreadystatechange || function () {};
-      document.onreadystatechange = function (b) {
-        e(b);
-        "loading" !== document.readyState &&
-          ((document.onreadystatechange = e), c());
-      };
-    }
-  }
-})();
